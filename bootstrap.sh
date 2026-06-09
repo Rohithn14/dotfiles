@@ -16,28 +16,44 @@ _has() { command -v "$1" >/dev/null 2>&1; }
 log()  { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 
 # ── 1. System lifelines (apt, needs sudo) ─────────────────────────────────
+# NOTE: must NOT abort the whole bootstrap if apt fails (e.g. sudo password
+# cancelled, no network, behind a proxy) — mise installs everything else and
+# is the part that actually matters. So this block is best-effort.
 APT_BASE=(git curl unzip stow build-essential ca-certificates zsh jq)
 if _has apt-get; then
   if ! dpkg -s "${APT_BASE[@]}" >/dev/null 2>&1; then
     log "Installing apt lifelines: ${APT_BASE[*]}"
-    sudo apt-get update -y
-    sudo apt-get install -y "${APT_BASE[@]}"
+    sudo apt-get update -y || log "WARN: apt update failed — continuing"
+    sudo apt-get install -y "${APT_BASE[@]}" || log "WARN: apt install failed — continuing"
   else
     log "apt lifelines already present — skipping"
   fi
 fi
 
 # ── 2. mise + all declared tools ──────────────────────────────────────────
-if ! _has mise; then
+# Resolve mise by ABSOLUTE path — right after the installer it is not yet on
+# the inherited PATH, so `command -v mise` can miss it and the tools silently
+# never install. This is the #1 cause of "configs present but binaries gone".
+MISE_BIN="$HOME/.local/bin/mise"
+if ! _has mise && [[ ! -x "$MISE_BIN" ]]; then
   log "Installing mise"
   curl -fsSL https://mise.run | sh
 fi
+# Prefer a mise already on PATH; otherwise fall back to the known install path.
+_has mise && MISE_BIN="$(command -v mise)"
 export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
-if _has mise; then
-  log "Installing tools from mise config.toml"
-  mise install
+
+if [[ -x "$MISE_BIN" ]]; then
+  log "Trusting + installing tools from mise config.toml"
+  "$MISE_BIN" trust --yes "$HOME/.config/mise/config.toml" >/dev/null 2>&1 || true
+  "$MISE_BIN" install --yes
+  "$MISE_BIN" reshim >/dev/null 2>&1 || true
+  log "Installed tools:"
+  "$MISE_BIN" ls --installed 2>/dev/null || "$MISE_BIN" ls
 else
-  log "WARNING: mise not on PATH yet — open a new shell and run 'mise install'"
+  log "ERROR: mise not found after install — cannot provision tools."
+  log "Fix: run 'curl https://mise.run | sh' then 're-run ./bootstrap.sh'."
+  exit 1
 fi
 
 # ── 3. zsh plugins (cloned, not vendored) ─────────────────────────────────
