@@ -1,0 +1,20 @@
+# ── Secrets — never commit ────────────────────────────────────────────────
+.ssh/
+**/gh/hosts.yml
+*.pem
+id_ed25519*
+id_rsa*
+*.key
+
+# ── Machine-local ─────────────────────────────────────────────────────────
+.zshrc.local
+
+# ── Vendored clones (recreated by bootstrap.sh) ───────────────────────────
+zsh/.config/zsh/plugins/
+nvim/
+
+# ── Noise ─────────────────────────────────────────────────────────────────
+.zsh_history
+*.orig
+*.bak
+*~

@@ -1,0 +1,22 @@
+[user]
+	email = rohithnamavaram1@gmail.com
+	name = Rohithn14
+[init]
+	defaultBranch = main
+[pull]
+	rebase = false
+[color]
+	ui = auto
+[core]
+	editor = nvim
+	pager = delta
+[push]
+	autoSetupRemote = true
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+	line-numbers = true
+	side-by-side = false
+[merge]
+	conflictStyle = zdiff3

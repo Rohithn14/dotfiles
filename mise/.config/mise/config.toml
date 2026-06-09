@@ -1,0 +1,17 @@
+[tools]
+neovim = "latest"
+starship = "latest"
+fzf = "latest"
+zoxide = "latest"
+eza = "latest"
+bat = "latest"
+yazi = "latest"
+usage = "latest"
+fd = "latest"
+"aqua:cli/cli" = "latest"          # GitHub CLI (gh)
+"aqua:dandavison/delta" = "latest" # git pager
+node = "lts"
+
+[settings]
+# Keep shims fresh after installs
+experimental = true
